@@ -1,11 +1,10 @@
 #include <stdio.h>
 #include <string.h>
 #include "mosquitto.h"
-
 #define TRUE 1
 #define FALSE 0
 
-typedef enum STATUS{SUCCESS, FAILURE};
+static enum STATUS{SUCCESS, FAILURE};
 
 /**************************************************************************/
 
@@ -37,23 +36,27 @@ static void fn_on_connect (struct mosquitto *mosq, void *obj, int result)
 
 /**************************************************************************/
 
-static STATUS initialise ()
+static enum STATUS initialise ()
 {
+  int status;
+
   status = mosquitto_lib_init ();
   if (status != MOSQ_ERR_SUCCESS)
     return FAILURE;
-  else
-    return SUCCESS;
+
+  return SUCCESS;
 }
 
 /**************************************************************************/
 
-static STATUS publish_message (const char *host,
+static enum STATUS publish_message (const char *host,
                                const int   port,
                                const char *message,
-                               const char *topic)
+                               const char *topic,
+                               const int   qos)
 {
   struct mosquitto *publisher;
+  int status;
 
   if (!(publisher = mosquitto_new (NULL, TRUE, NULL)))
   {
@@ -65,18 +68,21 @@ static STATUS publish_message (const char *host,
 
   status = mosquitto_connect (publisher, host, port, 60);
   if (status != MOSQ_ERR_SUCCESS)
-    return FALIURE;
+    return FAILURE;
 
 
   status = mosquitto_publish (publisher, NULL, topic, strlen (message),
                               message, qos, true);
   if (status != MOSQ_ERR_SUCCESS)
-    return FALIURE;
+    return FAILURE;
 
 
   status = mosquitto_loop (publisher , -1, 1);
   if (status != MOSQ_ERR_SUCCESS)
-    return FALIURE;
+    return FAILURE;
+
+
+  mosquitto_destroy (publisher);
 
   return SUCCESS;
 }
@@ -86,7 +92,6 @@ static STATUS publish_message (const char *host,
 
 static void clean_up ()
 {
-  mosquitto_destroy (publisher);
   mosquitto_lib_cleanup ();
 }
 
@@ -105,7 +110,7 @@ int main (int argc, char *argv[])
   status = initialise ();
   CHECK_STATUS (status);
 
-  status = publish_message (host, port, message, topic);
+  status = publish_message (host, port, message, topic, qos);
   CHECK_STATUS (status);
 
   clean_up ();
