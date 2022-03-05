@@ -4,8 +4,6 @@
 #include <string.h>
 #include <time.h>
 #include "mosquitto.h"
-#define TRUE 1
-#define FALSE 0
 
 #define FDEBUG
 enum STATUS {SUCCESS = 0, FAILURE = 1};
@@ -146,7 +144,7 @@ static enum STATUS publish_message (const char *host,
   struct mosquitto *publisher;
   int status;
 
-  if (!(publisher = mosquitto_new (NULL, TRUE, NULL)))
+  if (!(publisher = mosquitto_new (NULL, true, NULL)))
   {
     fprintf (stderr, "Out of memory!\n");
     return FAILURE;
