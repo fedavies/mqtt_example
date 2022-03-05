@@ -3,32 +3,9 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include "mosquitto.h"
+#include "mqtt_broker_interface.h"
 
 #define FDEBUG
-enum STATUS {SUCCESS = 0, FAILURE = 1};
-
-/**************************************************************************/
-
-#define CHECK_STATUS(_status) \
-  if ((_status) != SUCCESS) \
-  { \
-    printf ("Status error.\n"); \
-    return 1; \
-  }
-
-/**************************************************************************/
-
-static enum STATUS initialise ()
-{
-  int status;
-
-  status = mosquitto_lib_init ();
-  if (status != MOSQ_ERR_SUCCESS)
-    return FAILURE;
-
-  return SUCCESS;
-}
 
 /**************************************************************************/
 
@@ -113,7 +90,7 @@ static char *create_message ()
   time (&rawtime);
   timeinfo = localtime (&rawtime);
 
-  /* Create a random temperature that is at least reasonable for a rooom */
+  /* Create a random temperature that is at least reasonable for a polarity inverter */
   temp = rand () % 30 + 5;
 
   memcpy (&clock_time[0], itoa_2 (timeinfo -> tm_hour), 2);
@@ -131,49 +108,6 @@ static char *create_message ()
 static void destroy_message (char *message)
 {
   free (message);
-}
-
-/**************************************************************************/
-
-static enum STATUS publish_message (const char *host,
-                                    const int   port,
-                                    char *message,
-                                    const char *topic,
-                                    const int   qos)
-{
-  struct mosquitto *publisher;
-  int status;
-
-  if (!(publisher = mosquitto_new (NULL, true, NULL)))
-  {
-    fprintf (stderr, "Out of memory!\n");
-    return FAILURE;
-  }
-
-  status = mosquitto_connect (publisher, host, port, 60);
-  if (status != MOSQ_ERR_SUCCESS)
-    return FAILURE;
-
-
-  status = mosquitto_publish (publisher, NULL, topic,
-                              strlen((char *)message),
-                              message, qos, true);
-  if (status != MOSQ_ERR_SUCCESS)
-    return FAILURE;
-
-
-
-  mosquitto_destroy (publisher);
-
-  return SUCCESS;
-}
-
-
-/**************************************************************************/
-
-static void clean_up ()
-{
-  mosquitto_lib_cleanup ();
 }
 
 /**************************************************************************/
