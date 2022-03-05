@@ -9,9 +9,6 @@
 
 static enum STATUS {SUCCESS = 0, FAILURE = 1};
 
-/* ERGH! I couldn't get malloc to behave, so this will have to do for now */
-static char json[17];
-
 /**************************************************************************/
 
 #define CHECK_STATUS(_status) \
@@ -84,6 +81,11 @@ static char *itoa_2 (int a)
 
 static char *convert_message_to_JSON (char *time, int temp)
 {
+  char *json;
+
+  json = malloc (17);
+  if (!json)
+    return NULL;
 
   memset (&json[0], '{', 1);
   memset (&json[1], '\n', 1);
@@ -142,7 +144,7 @@ static char *create_message ()
 
 static void destroy_message (char *message)
 {
-  /* do nothing - the json is a global array */
+  free (message);
 }
 
 /**************************************************************************/
@@ -198,14 +200,8 @@ int main (int argc, char *argv[])
   char *host = "127.0.0.1";
   int port = 1883;
   int qos = 1;
-  const char *topic = "house/sensor";
-#if 0
-  const char *message = "A message from beyond\n";
-#else
+  const char *topic = "spaceship/polarity_inverter"; /* For example */
   char *message;
-#endif
-
-
 
   status = initialise ();
   CHECK_STATUS (status);
