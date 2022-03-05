@@ -69,7 +69,6 @@ void fn_message_callback (struct mosquitto *mosq,
 {
   UserData *data;
 
-  printf ("Message recieved\n");
 
   data = obj;
   (data -> fn_read_message)(mosq_message -> payloadlen,

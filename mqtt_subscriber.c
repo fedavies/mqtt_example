@@ -5,70 +5,58 @@
 
 #define FDEBUG
 
+#define CHAR_NOT_A_NUMBER(_c) \
+  (((_c) != '0') && \
+   ((_c) != '1') && \
+   ((_c) != '2') && \
+   ((_c) != '3') && \
+   ((_c) != '4') && \
+   ((_c) != '5') && \
+   ((_c) != '6') && \
+   ((_c) != '7') && \
+   ((_c) != '8') && \
+   ((_c) != '9') && \
+   ((_c) != ':'))
+
+
+
 /************************************************************************/
 
 void fn_read_message (int length, char *message)
 {
   /* JSON format */
-  char time[9];
-  char temp[2];
   int i;
-  int j;
 
+  /* New line to make it easier to read. */
+  printf ("|          |          |\n");
   /* Get to the start of the information */
   i = 0;
-  while (true)
-  {
-    if (message[i] == '\"')
-      break;
+  while (CHAR_NOT_A_NUMBER (message[i]))
     i++;
-  }
-  /* Step ahead of the " */
-  i++;
+
 
   /* Read out the time */
-  j = 0;
-  while (true)
+  printf ("| ");
+  while (!CHAR_NOT_A_NUMBER (message[i]))
   {
-    memset (&time[j], message[i], 1);
+    printf ("%c", message[i]);
     i++;
-    j++;
-    if (message[i] == '\"')
-      break;
   }
-
-  printf ("Gets here\n");
-  memset (&time[j+1], '\0', 1);
 
   /* Get to the temperature */
-  while (true)
-  {
-    if ((message[i] == '\"') ||
-        (message[i] == ':') ||
-        (message[i] == ' '))
-      i++;
-    else
-      break;
-  }
+  while (CHAR_NOT_A_NUMBER (message[i]) || (message [i] == ':'))
+    i++;
 
   /* Read out the temp */
-  j = 0;
-  while (true)
-    {
-      memset (&temp[j], message[i], 1);
-      i++;
-      j++;
-      if (message[i] == '\"')
-        break;
-    }
+  printf (" | ");
+  while (!CHAR_NOT_A_NUMBER (message[i]))
+  {
+    printf ("%c", message[i]);
+    i++;
+  }
 
+  printf ("       |\n");
 
-  printf ("|                     |\n");
-  printf ("| ");
-  printf ("%s", time);
-  printf ("   | ");
-  printf ("%s", temp);
-  printf ("           |\n");
 }
 
 /************************************************************************/
@@ -85,7 +73,7 @@ int main (int argc, char *argv[])
   CHECK_STATUS (status);
 
 
-  printf ("|___TIME___|__TEMP/K__|");
+  printf ("|___TIME___|__TEMP/K__|\n");
   status = subscribe_and_read (host, port, topic, qos, fn_read_message);
   CHECK_STATUS (status);
 
