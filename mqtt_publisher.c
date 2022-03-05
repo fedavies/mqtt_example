@@ -5,7 +5,7 @@
 #include <time.h>
 #include "mqtt_broker_interface.h"
 
-#define FDEBUG
+/* #define FDEBUG */
 
 /**************************************************************************/
 
