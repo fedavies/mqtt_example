@@ -7,7 +7,8 @@
 #define TRUE 1
 #define FALSE 0
 
-static enum STATUS {SUCCESS = 0, FAILURE = 1};
+#define FDEBUG
+enum STATUS {SUCCESS = 0, FAILURE = 1};
 
 /**************************************************************************/
 
@@ -17,25 +18,6 @@ static enum STATUS {SUCCESS = 0, FAILURE = 1};
     printf ("Status error.\n"); \
     return 1; \
   }
-
-/**************************************************************************/
-
-static void fn_on_message (struct mosquitto *mosq,
-                           void *obj,
-                           const struct mosquitto_message *message)
-{
-
-  printf ("Recieved message '%s' on topic '%s'.\n",
-          (char *) message -> payload,
-          message -> topic);
-}
-
-/**************************************************************************/
-
-static void fn_on_connect (struct mosquitto *mosq, void *obj, int result)
-{
-  printf ("Connected to MQTT broker");
-}
 
 /**************************************************************************/
 
@@ -83,33 +65,38 @@ static char *convert_message_to_JSON (char *time, int temp)
 {
   char *json;
 
-  json = malloc (17);
+  json = malloc (20);
   if (!json)
     return NULL;
 
-  memset (&json[0], '{', 1);
-  memset (&json[1], '\n', 1);
+  memset (&json[ 0], '{', 1);
+  memset (&json[ 1], '\n', 1);
 
-  memset (&json[2], '\"', 1);
-  memset (&json[3], time[0], 1);
-  memset (&json[4], time[1], 1);
-  memset (&json[5], ':', 1);
-  memset (&json[6], time[2], 1);
-  memset (&json[7], time[3], 1);
-  memset (&json[8], '\"', 1);
+  memset (&json[ 2], '\"', 1);
+  memset (&json[ 3], time[0], 1);
+  memset (&json[ 4], time[1], 1);
+  memset (&json[ 5], ':', 1);
+  memset (&json[ 6], time[2], 1);
+  memset (&json[ 7], time[3], 1);
+  memset (&json[ 8], ':', 1);
+  memset (&json[ 9], time[4], 1);
+  memset (&json[10], time[5], 1);
+  memset (&json[11], '\"', 1);
 
-  memset (&json[9], ' ', 1);
-  memset (&json[10], ':', 1);
-  memset (&json[11], ' ', 1);
+  memset (&json[12], ' ', 1);
+  memset (&json[13], ':', 1);
+  memset (&json[14], ' ', 1);
 
-  memcpy (&json[12], itoa_2 (temp), 2);
+  memcpy (&json[15], itoa_2 (temp), 2);
 
-  memset (&json[14], '\n', 1);
-  memset (&json[15], '}', 1);
+  memset (&json[17], '\n', 1);
+  memset (&json[18], '}', 1);
 
-  memset (&json[16], '\0', 1);
+  memset (&json[19], '\0', 1);
 
+#ifdef FDEBUG
   printf ("%s\n", json);
+#endif
 
   return json;
 
@@ -121,7 +108,7 @@ static char *create_message ()
 {
   time_t rawtime;
   struct tm *timeinfo;
-  char clock_time[4];
+  char clock_time[6];
   int temp;
   char *message;
 
@@ -133,6 +120,7 @@ static char *create_message ()
 
   memcpy (&clock_time[0], itoa_2 (timeinfo -> tm_hour), 2);
   memcpy (&clock_time[2], itoa_2 (timeinfo -> tm_min), 2);
+  memcpy (&clock_time[4], itoa_2 (timeinfo -> tm_sec), 2);
   message = convert_message_to_JSON (clock_time, temp);
   if (!message)
     return NULL;
@@ -163,8 +151,6 @@ static enum STATUS publish_message (const char *host,
     fprintf (stderr, "Out of memory!\n");
     return FAILURE;
   }
-
-  mosquitto_connect_callback_set (publisher, fn_on_connect);
 
   status = mosquitto_connect (publisher, host, port, 60);
   if (status != MOSQ_ERR_SUCCESS)
@@ -202,14 +188,19 @@ int main (int argc, char *argv[])
   int qos = 1;
   const char *topic = "spaceship/polarity_inverter"; /* For example */
   char *message;
+  int i;
 
   status = initialise ();
   CHECK_STATUS (status);
 
-  message = create_message ();
-  status = publish_message (host, port, message, topic, qos);
-  CHECK_STATUS (status);
-  destroy_message (message);
+  for (i = 0; i < 20; ++i)
+  {
+    message = create_message ();
+    status = publish_message (host, port, message, topic, qos);
+    CHECK_STATUS (status);
+    destroy_message (message);
+    sleep (1);
+  }
 
   clean_up ();
 
