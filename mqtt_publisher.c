@@ -125,7 +125,7 @@ int main (int argc, char *argv[])
   status = initialise ();
   CHECK_STATUS (status);
 
-  for (i = 0; i < 20; ++i)
+  for (i = 0; i < 2000; ++i)
   {
     message = create_message ();
     status = publish_message (host, port, message, topic, qos);

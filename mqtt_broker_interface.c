@@ -115,7 +115,7 @@ enum STATUS subscribe_and_read (const char *host,
 
   while (true)
   {
-    status = mosquitto_loop (subscriber, -1, 1);
+    status = mosquitto_loop_forever (subscriber, -1, 1);
     if (status != MOSQ_ERR_SUCCESS)
     {
       printf ("Failed to connect\n");
