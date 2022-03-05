@@ -5,6 +5,7 @@
 
 #define FDEBUG
 
+/* Include : to make time parsing easier */
 #define CHAR_NOT_A_NUMBER(_c) \
   (((_c) != '0') && \
    ((_c) != '1') && \

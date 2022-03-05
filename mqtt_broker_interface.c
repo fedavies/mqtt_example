@@ -57,6 +57,9 @@ enum STATUS publish_message (const char *host,
 }
 
 /**************************************************************************/
+/* Structure used to pass the user callback to the message callback       */
+/**************************************************************************/
+
 typedef struct {
   void (*fn_read_message)(int, char *);
 } UserData;
@@ -69,14 +72,12 @@ void fn_message_callback (struct mosquitto *mosq,
 {
   UserData *data;
 
-
   data = obj;
   (data -> fn_read_message)(mosq_message -> payloadlen,
                             mosq_message -> payload);
 }
 
 /**************************************************************************/
-
 
 enum STATUS subscribe_and_read (const char *host,
                                 const int   port,
@@ -86,15 +87,10 @@ enum STATUS subscribe_and_read (const char *host,
 {
   struct mosquitto *subscriber;
   int status;
-  char client_id[3];
   UserData data;
 
-  client_id[0] = 'f';
-  client_id[1] = 'e';
-  client_id[2] = 'd';
-
   data.fn_read_message = fn_read_message;
-  if (!(subscriber = mosquitto_new (client_id, true, &data)))
+  if (!(subscriber = mosquitto_new (NULL, true, &data)))
   {
     fprintf (stderr, "Out of memory!\n");
     return FAILURE;
