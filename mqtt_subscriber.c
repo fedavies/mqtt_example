@@ -26,6 +26,7 @@ void fn_read_message (int length, char *message)
 {
   /* JSON format */
   int i;
+  int num_printed;
 
   /* New line to make it easier to read. */
   printf ("|          |          |\n");
@@ -37,9 +38,11 @@ void fn_read_message (int length, char *message)
 
   /* Read out the time */
   printf ("| ");
+  num_printed = 2;
   while (!CHAR_NOT_A_NUMBER (message[i]))
   {
     printf ("%c", message[i]);
+    num_printed++;
     i++;
   }
 
@@ -49,13 +52,20 @@ void fn_read_message (int length, char *message)
 
   /* Read out the temp */
   printf (" | ");
+  num_printed += 3;
   while (!CHAR_NOT_A_NUMBER (message[i]))
   {
     printf ("%c", message[i]);
+    num_printed++;
     i++;
   }
 
-  printf ("       |\n");
+  while (num_printed < 22)
+  {
+    printf (" ");
+    num_printed++;
+  }
+  printf ("|\n");
 
 }
 
